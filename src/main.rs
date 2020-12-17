@@ -39,6 +39,9 @@ fn main() {
         "to-latex" => {
             println!("{}", &song.to_latex());
         }
+        "to-html" => {
+            println!("{}", &song.to_html());
+        }
         _ => {
             help();
             return;

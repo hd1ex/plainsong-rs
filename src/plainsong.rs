@@ -54,6 +54,28 @@ impl SongLine {
 
         format!("{}\n", out)
     }
+
+    fn to_html(&self) -> String {
+        let mut out = String::new();
+
+        if !self.chords.is_empty() {
+            out.push_str("<b>");
+            let mut last = 0;
+            for chord in self.chords.iter() {
+                out.push_str(&" ".repeat((chord.pos - last) as usize));
+                out.push_str(&chord.name);
+                last = chord.pos + chord.name.len() as u32;
+            }
+            out.push_str("</b>\n");
+        }
+
+        if !self.text.is_empty() {
+            out.push_str(&self.text);
+            out.push_str("\n");
+        }
+
+        out
+    }
 }
 
 #[derive(Default, Debug)]
@@ -69,7 +91,7 @@ impl SongPart {
 
     pub fn to_latex(&mut self) -> String {
         let mut out = String::new();
-        
+
         lazy_static! {
             static ref RE: Regex = Regex::new(r"^verse (\d)+$").unwrap();
         };
@@ -98,6 +120,19 @@ impl SongPart {
         }
 
         out.push_str(end);
+        out
+    }
+
+    fn to_html(&self) -> String {
+        let mut out = String::new();
+
+        // Add title
+        out.push_str(&format!("<em>{}:</em>\n", self.name));
+
+        for line in self.lines.iter() {
+            out.push_str(&line.to_html());
+        }
+
         out
     }
 }
@@ -130,6 +165,33 @@ impl Song {
 
         // End the song
         out.push_str("\\endsong\n");
+
+        out
+    }
+
+    pub fn to_html(&mut self) -> String {
+        let mut out = String::new();
+
+        // Surround with pre tag
+        out.push_str("<pre>");
+
+        // Add the title
+        out.push_str(&format!("<h1>{}</h1>\n", self.title));
+
+        // Add metadata
+        for (k, v) in self.metadata.iter() {
+            out.push_str(&format!("{}: {}\n", k, v));
+        }
+        out.push_str("\n\n");
+
+        // Add parts
+        for part in self.parts.iter() {
+            out.push_str(&part.to_html());
+            out.push_str("\n\n");
+        }
+
+        // Close pre tag
+        out.push_str("</pre>");
 
         out
     }
